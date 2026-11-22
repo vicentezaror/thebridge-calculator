@@ -129,15 +129,83 @@ if (typeof document !== 'undefined') (function () {
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
   const today = Math.floor(Date.now() / DAY);
-  const state = {
+  const defaults = () => ({
     checkin: fromDay(today + 14),
     checkout: fromDay(today + 21),
     amount: { currency: 'usd', value: null },
     rate: 950,
     mode: 'proportional',
     members: [],
-  };
+  });
+  const state = defaults();
   let nextId = 1;
+
+  /* ----- Guardado: localStorage y link (#s=...) ----- */
+  const STORE_KEY = 'thebridge:v1';
+  const isIso = (v) => typeof v === 'string' && Number.isFinite(toDay(v));
+  const isBlank = () => state.members.length === 0 && state.amount.value == null;
+
+  const pack = () => ({
+    v: 1, i: state.checkin, o: state.checkout,
+    c: state.amount.currency, a: state.amount.value, r: state.rate, m: state.mode,
+    p: state.members.map((m) => [m.name, m.from, m.to, COLORS.indexOf(m.color)]),
+  });
+  // Lo que viene de un link o del almacenamiento no es confiable: se valida campo a campo.
+  function unpack(o) {
+    if (!o || typeof o !== 'object' || o.v !== 1 || !Array.isArray(o.p)) return null;
+    const d = defaults();
+    const posNum = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
+    return {
+      checkin: isIso(o.i) ? o.i : d.checkin,
+      checkout: isIso(o.o) ? o.o : d.checkout,
+      amount: { currency: o.c === 'clp' ? 'clp' : 'usd', value: posNum(o.a) },
+      rate: posNum(o.r) || 0,
+      mode: o.m === 'per-night' ? 'per-night' : 'proportional',
+      members: o.p.slice(0, 50).filter(Array.isArray).map((p, i) => ({
+        id: i + 1,
+        name: String(p[0] == null ? '' : p[0]).slice(0, 40),
+        from: isIso(p[1]) ? p[1] : '',
+        to: isIso(p[2]) ? p[2] : '',
+        color: COLORS[Number.isInteger(p[3]) && p[3] >= 0 ? p[3] % COLORS.length : i % COLORS.length],
+      })),
+    };
+  }
+  const encode = (obj) => {
+    let bin = '';
+    new TextEncoder().encode(JSON.stringify(obj)).forEach((b) => { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  const decode = (text) => {
+    const bin = atob(text.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
+  };
+  const fromHash = () => {
+    const m = /^#s=([\w-]+)$/.exec(location.hash);
+    if (!m) return null;
+    try { return unpack(decode(m[1])); } catch (e) { return null; }
+  };
+  const fromStorage = () => {
+    try { return unpack(JSON.parse(localStorage.getItem(STORE_KEY))); } catch (e) { return null; }
+  };
+  function adopt(loaded) {
+    Object.assign(state, loaded);
+    nextId = state.members.length + 1;
+  }
+  function save() {
+    const blank = isBlank();
+    try {
+      if (blank) localStorage.removeItem(STORE_KEY);
+      else localStorage.setItem(STORE_KEY, JSON.stringify(pack()));
+    } catch (e) { /* almacenamiento bloqueado o lleno: la app sigue funcionando */ }
+    try {
+      history.replaceState(null, '', blank ? location.pathname + location.search : '#s=' + encode(pack()));
+    } catch (e) { /* idem */ }
+  }
+  let saveTimer = 0;
+  const scheduleSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); };
+  window.addEventListener('pagehide', () => { clearTimeout(saveTimer); save(); });
+
+  adopt(fromHash() || fromStorage() || defaults());
 
   const inCheckin = $('#checkin'), inCheckout = $('#checkout');
   const inUsd = $('#usd'), inClp = $('#clp'), inRate = $('#rate');
@@ -196,7 +264,9 @@ if (typeof document !== 'undefined') (function () {
     const input = $('#add-name');
     const name = input.value.trim() || `Persona ${state.members.length + 1}`;
     const id = nextId++;
-    state.members.push({ id, name, color: COLORS[(id - 1) % COLORS.length], from: state.checkin, to: state.checkout });
+    const used = new Set(state.members.map((m) => m.color));
+    const color = COLORS.find((c) => !used.has(c)) || COLORS[(id - 1) % COLORS.length];
+    state.members.push({ id, name, color, from: state.checkin, to: state.checkout });
     input.value = '';
     input.focus();
     render();
@@ -405,9 +475,38 @@ if (typeof document !== 'undefined') (function () {
     }
     renderCal(res);
     renderTable(res);
+    $('#reset').hidden = isBlank();
+    scheduleSave();
   }
 
-  inCheckin.value = state.checkin;
-  inCheckout.value = state.checkout;
-  render();
+  // Pone en los campos lo que hay en el estado (al cargar o al abrir otro link).
+  function fillInputs() {
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    inCheckin.value = state.checkin;
+    inCheckout.value = state.checkout;
+    document.querySelectorAll('input[name="mode"]').forEach((r) => { r.checked = r.value === state.mode; });
+    rowsEl.replaceChildren();
+    render();
+  }
+
+  window.addEventListener('hashchange', () => {
+    const loaded = fromHash();
+    if (loaded) { adopt(loaded); fillInputs(); }
+  });
+
+  const copyBtn = $('#copy-link');
+  copyBtn.addEventListener('click', async () => {
+    clearTimeout(saveTimer); save();
+    let ok = true;
+    try { await navigator.clipboard.writeText(location.href); } catch (e) { ok = false; }
+    copyBtn.textContent = ok ? 'Link copiado' : 'Copia el link desde la barra de direcciones';
+    setTimeout(() => { copyBtn.textContent = 'Copiar link'; }, 2500);
+  });
+  $('#reset').addEventListener('click', () => {
+    if (!confirm('Se borran las personas, las fechas y el monto. ¿Empezar de nuevo?')) return;
+    adopt(defaults());
+    fillInputs();
+  });
+
+  fillInputs();
 })();

@@ -100,7 +100,13 @@
       <ul class="notes" id="notes"></ul>
     </section>
 
-    <footer class="foot">Los datos viven solo en esta pestaña: al recargar se borran.</footer>
+    <footer class="foot">
+      <p>Los cambios se guardan en este navegador y en el link. Quien abra el link ve una copia: lo que cambie no llega a los demás.</p>
+      <div class="foot-actions">
+        <button type="button" id="copy-link" class="quiet">Copiar link</button>
+        <button type="button" id="reset" class="quiet" hidden>Empezar de nuevo</button>
+      </div>
+    </footer>
   </main>
 
   <script src="app.js"></script>

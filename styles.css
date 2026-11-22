@@ -193,7 +193,11 @@ button:hover { background: #2A3849; }
 .empty { margin: 18px 0 0; padding: 28px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 10px; }
 .notes { margin: 16px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .9375rem; }
 .notes li + li { margin-top: 4px; }
-.foot { padding: 20px 0 40px; color: var(--muted); font-size: .875rem; }
+.foot { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding: 20px 0 40px; color: var(--muted); font-size: .875rem; }
+.foot p { margin: 0; max-width: 60ch; }
+.foot-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button.quiet { background: transparent; color: var(--ink); border: 1px solid #AEB9C4; font-weight: 500; }
+button.quiet:hover { background: var(--paper); }
 
 /* ---------- Pantallas chicas ---------- */
 @media (max-width: 860px) {
