@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <h1>The Bridge</h1>
+      <p class="lede">Reparte el Airbnb según las noches que se queda cada uno.</p>
+    </div>
+    <svg id="bridge" class="bridge" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </header>
+
+  <main class="wrap">
+    <section class="stay" aria-labelledby="stay-h">
+      <h2 id="stay-h">El Airbnb</h2>
+      <div class="fields">
+        <label class="field">
+          <span>Check-in</span>
+          <input type="date" id="checkin">
+        </label>
+        <label class="field">
+          <span>Check-out</span>
+          <input type="date" id="checkout">
+        </label>
+        <label class="field money">
+          <span>Monto en dólares</span>
+          <span class="affix"><i>US$</i><input type="text" inputmode="decimal" id="usd" placeholder="0,00" autocomplete="off"></span>
+        </label>
+        <label class="field money">
+          <span>Monto en pesos</span>
+          <span class="affix"><i>$</i><input type="text" inputmode="numeric" id="clp" placeholder="0" autocomplete="off"></span>
+        </label>
+        <label class="field money rate">
+          <span>Pesos por dólar</span>
+          <span class="affix"><i>$</i><input type="text" inputmode="decimal" id="rate" autocomplete="off"></span>
+        </label>
+      </div>
+      <p class="hint" id="stay-summary"></p>
+    </section>
+
+    <section class="calendar" aria-labelledby="cal-h">
+      <div class="section-head">
+        <h2 id="cal-h">Calendario</h2>
+        <form id="add-form" class="add">
+          <label class="sr" for="add-name">Nombre de la persona</label>
+          <input type="text" id="add-name" placeholder="Nombre" maxlength="40" autocomplete="off">
+          <button type="submit">Agregar persona</button>
+        </form>
+      </div>
+      <div class="cal-scroll" id="cal-scroll">
+        <div class="cal" id="cal"></div>
+      </div>
+      <p class="hint" id="cal-hint"></p>
+    </section>
+
+    <section class="split" aria-labelledby="split-h">
+      <div class="section-head">
+        <h2 id="split-h">Cuánto paga cada uno</h2>
+        <fieldset class="mode">
+          <legend class="sr">Cómo repartir</legend>
+          <label><input type="radio" name="mode" value="proportional" checked><span>Por noches de cada uno</span></label>
+          <label><input type="radio" name="mode" value="per-night"><span>Noche a noche</span></label>
+        </fieldset>
+      </div>
+      <p class="hint" id="mode-hint"></p>
+      <table class="people" id="people">
+        <thead>
+          <tr>
+            <th scope="col">Persona</th>
+            <th scope="col">Llega</th>
+            <th scope="col">Se va</th>
+            <th scope="col" class="num">Noches</th>
+            <th scope="col" class="num">Parte</th>
+            <th scope="col" class="num">Dólares</th>
+            <th scope="col" class="num">Pesos</th>
+            <th scope="col"><span class="sr">Quitar</span></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="3">Total</th>
+            <td class="num" id="t-nights"></td>
+            <td class="num" id="t-share"></td>
+            <td class="num" id="t-usd"></td>
+            <td class="num" id="t-clp"></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      <p class="empty" id="empty">Agrega a la primera persona para empezar a repartir.</p>
+      <ul class="notes" id="notes"></ul>
+    </section>
+
+    <footer class="foot">Los datos viven solo en esta pestaña: al recargar se borran.</footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
