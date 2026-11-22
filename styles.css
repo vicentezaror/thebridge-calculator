@@ -8,7 +8,7 @@
   --bridge: #C8452F;
   --display: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
   --body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --namew: 150px;
+  --namew: 176px;
 }
 
 * { box-sizing: border-box; }
@@ -133,7 +133,17 @@ button:hover { background: #2A3849; }
   border-bottom: 1px solid var(--line);
   min-width: 0;
 }
-.who-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.who-name {
+  flex: 1; min-width: 0; height: auto; padding: 2px 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: none; color: var(--ink); font-weight: 500; text-align: left; border-radius: 4px;
+}
+.who-name:hover { background: none; text-decoration: underline; text-underline-offset: 3px; }
+.who-remove {
+  flex: none; width: 26px; height: 26px; padding: 0;
+  background: transparent; color: var(--muted); font-size: 1.125rem; line-height: 1;
+}
+.who-remove:hover { background: var(--fog); color: var(--bridge); }
 .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
 .cell {
   position: relative; height: 40px;
@@ -180,9 +190,9 @@ button:hover { background: #2A3849; }
 .o-nights.warn { color: var(--bridge); font-weight: 600; }
 .c-remove { width: 1%; padding-right: 0 !important; }
 .remove {
-  width: 34px; height: 34px; padding: 0;
+  height: 34px; padding: 0 10px;
   background: transparent; color: var(--muted);
-  font-size: 1.25rem; line-height: 1;
+  font-size: .875rem; font-weight: 500;
 }
 .remove:hover { background: var(--fog); color: var(--bridge); }
 .people tfoot th, .people tfoot td {
@@ -233,7 +243,7 @@ button.quiet:hover { background: var(--paper); }
   .people tfoot td:nth-of-type(1), .people tfoot td:nth-of-type(2), .people tfoot td:last-child { display: none; }
 }
 @media (max-width: 520px) {
-  :root { --namew: 104px; }
+  :root { --namew: 124px; }
   main > section { padding: 18px 16px; }
   .wrap { padding: 0 12px; }
   .cal-scroll { margin: 16px -16px 0; padding: 0 16px; }

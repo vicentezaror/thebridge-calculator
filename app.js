@@ -281,12 +281,13 @@ if (typeof document !== 'undefined') (function () {
     m[field] = e.target.value;
     render();
   });
-  rowsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-remove]');
-    if (!btn) return;
-    const id = +btn.closest('tr').dataset.id;
+  function removeMember(id) {
     state.members = state.members.filter((m) => m.id !== id);
     render();
+  }
+  rowsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-remove]');
+    if (btn) removeMember(+btn.closest('tr').dataset.id);
   });
 
   function buildRow(m) {
@@ -307,7 +308,7 @@ if (typeof document !== 'undefined') (function () {
     cell('Parte', 'num o-share');
     cell('Dólares', 'num o-usd');
     cell('Pesos', 'num o-clp');
-    const rm = el('button', 'remove', '×');
+    const rm = el('button', 'remove', 'Quitar');
     rm.type = 'button'; rm.dataset.remove = '1';
     cell('', 'c-remove').append(rm);
     return tr;
@@ -408,7 +409,11 @@ if (typeof document !== 'undefined') (function () {
       const r = res.rows[i];
       const name = el('div', 'who');
       name.style.setProperty('--c', m.color);
-      name.append(el('span', 'dot'), el('span', 'who-name', m.name));
+      const edit = el('button', 'who-name', m.name);
+      edit.type = 'button'; edit.dataset.edit = m.id; edit.title = 'Editar nombre y fechas';
+      const rm = el('button', 'who-remove', '×');
+      rm.type = 'button'; rm.dataset.remove = m.id; rm.setAttribute('aria-label', `Quitar a ${m.name}`);
+      name.append(el('span', 'dot'), edit, rm);
       calEl.append(name);
       for (let d = 0; d < n; d++) {
         const day = res.start + d;
@@ -425,11 +430,21 @@ if (typeof document !== 'undefined') (function () {
     if (state.members.length) {
       calEl.append(el('div', 'who occ-label', 'Personas'));
       res.occ.forEach((c) => calEl.append(el('div', 'occ' + (c === 0 ? ' zero' : ''), c)));
-      hint.textContent = 'Arrastra sobre la fila de alguien para marcar desde qué noche hasta qué noche se queda. El día en que se va no cuenta como noche.';
+      hint.textContent = 'Arrastra sobre la fila de alguien para marcar desde qué noche hasta qué noche se queda. El día en que se va no cuenta como noche. Toca un nombre para editarlo, o la × para quitar a esa persona.';
     } else {
       hint.textContent = '';
     }
   }
+
+  // En el calendario: quitar a alguien, o saltar a su fila para editar nombre y fechas
+  calEl.addEventListener('click', (e) => {
+    const rm = e.target.closest('button[data-remove]');
+    if (rm) return removeMember(+rm.dataset.remove);
+    const edit = e.target.closest('button[data-edit]');
+    if (!edit) return;
+    const input = rowsEl.querySelector(`tr[data-id="${edit.dataset.edit}"] input[data-field="name"]`);
+    if (input) { input.focus(); input.select(); input.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  });
 
   // Arrastrar para marcar un rango
   let drag = null;
